@@ -422,12 +422,20 @@ class LtiConsumerXBlock(StudioEditableXBlockMixin, XBlock):
         scope=Scope.settings
     )
 
+    ask_to_send_fullname = Boolean(
+        display_name=_("Request user's full name"),
+        # Translators: This is used to request the user's full name for a third party service.
+        help=_("Select True to request the user's full name."),
+        default=False,
+        scope=Scope.settings
+    )
+
     # Possible editable fields
     editable_field_names = (
         'display_name', 'description', 'lti_id', 'launch_url', 'custom_parameters',
         'launch_target', 'button_text', 'inline_height', 'modal_height', 'modal_width',
         'has_score', 'weight', 'hide_launch', 'accept_grades_past_due', 'ask_to_send_username',
-        'ask_to_send_email'
+        'ask_to_send_email', 'ask_to_send_fullname'
     )
 
     def validate_field_data(self, validation, data):
@@ -439,14 +447,14 @@ class LtiConsumerXBlock(StudioEditableXBlockMixin, XBlock):
     def editable_fields(self):
         """
         Returns editable fields which may/may not contain 'ask_to_send_username' and
-        'ask_to_send_email' fields depending on the configuration service.
+        'ask_to_send_email' and 'ask_to_send_fullname'  fields depending on the configuration service.
         """
         editable_fields = self.editable_field_names
         # update the editable fields if this XBlock is configured to not to allow the
-        # editing of 'ask_to_send_username' and 'ask_to_send_email'.
+        # editing of 'ask_to_send_username', 'ask_to_send_email' and ask_to_send_fullname.
         config_service = self.runtime.service(self, 'lti-configuration')
         if config_service:
-            is_already_sharing_learner_info = self.ask_to_send_email or self.ask_to_send_username
+            is_already_sharing_learner_info = self.ask_to_send_email or self.ask_to_send_username or self.ask_to_send_fullname
             if not config_service.configuration.lti_access_to_learners_editable(
                     self.course_id,
                     is_already_sharing_learner_info,
@@ -454,7 +462,7 @@ class LtiConsumerXBlock(StudioEditableXBlockMixin, XBlock):
                 editable_fields = tuple(
                     field
                     for field in self.editable_field_names
-                    if field not in ('ask_to_send_username', 'ask_to_send_email')
+                    if field not in ('ask_to_send_username', 'ask_to_send_email', 'ask_to_send_fullname')
                 )
 
         return editable_fields
