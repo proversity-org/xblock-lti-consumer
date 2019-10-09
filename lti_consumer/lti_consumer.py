@@ -427,7 +427,7 @@ class LtiConsumerXBlock(StudioEditableXBlockMixin, XBlock):
         # Translators: This is used to request the user's full name for a third party service.
         help=_("Select True to request the user's full name."),
         default=False,
-        scope=Scope.settings
+        scope=Scope.settings,
     )
 
     # Possible editable fields
@@ -435,7 +435,7 @@ class LtiConsumerXBlock(StudioEditableXBlockMixin, XBlock):
         'display_name', 'description', 'lti_id', 'launch_url', 'custom_parameters',
         'launch_target', 'button_text', 'inline_height', 'modal_height', 'modal_width',
         'has_score', 'weight', 'hide_launch', 'accept_grades_past_due', 'ask_to_send_username',
-        'ask_to_send_email', 'ask_to_send_fullname'
+        'ask_to_send_email', 'ask_to_send_fullname',
     )
 
     def validate_field_data(self, validation, data):
@@ -454,15 +454,22 @@ class LtiConsumerXBlock(StudioEditableXBlockMixin, XBlock):
         # editing of 'ask_to_send_username', 'ask_to_send_email' and ask_to_send_fullname.
         config_service = self.runtime.service(self, 'lti-configuration')
         if config_service:
-            is_already_sharing_learner_info = self.ask_to_send_email or self.ask_to_send_username or self.ask_to_send_fullname
+            is_already_sharing_learner_info = \
+                self.ask_to_send_email or self.ask_to_send_username or self.ask_to_send_fullname
+
             if not config_service.configuration.lti_access_to_learners_editable(
                     self.course_id,
                     is_already_sharing_learner_info,
             ):
+                invalid_fields = (
+                    'ask_to_send_username',
+                    'ask_to_send_email',
+                    'ask_to_send_fullname',
+                )
                 editable_fields = tuple(
                     field
                     for field in self.editable_field_names
-                    if field not in ('ask_to_send_username', 'ask_to_send_email', 'ask_to_send_fullname')
+                    if field not in invalid_fields
                 )
 
         return editable_fields
